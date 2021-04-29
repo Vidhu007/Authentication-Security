@@ -1,11 +1,12 @@
-// Level 1
-//emial and password
+// level 2
+// database encryption
 const express = require('express')
 const ejs = require('ejs')
 const bodyParser = require('body-parser')
 const app = express();
 const mongoose = require('mongoose');
 const e = require('express');
+const encrypt = require('mongoose-encryption')
 
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
@@ -16,10 +17,20 @@ mongoose.connect("mongodb://localhost:27017/userDB", {
     useFindAndModify: true
 })
 
-const userSchema = {
+const userSchema = new mongoose.Schema({
     email: String,
     password: String
-}
+})
+
+// deciding the key for our encryption
+const secret = "this_is_a_unguessable_string_KUCH BHI DAALDO"
+// see the documentation of mongoose-encryprion
+userSchema.plugin(encrypt, {secret: secret , encryptedFields: ["password"]})
+
+// mongoose will encrypt the password when we save()
+// mongoose will decrypt the passowrd when we find()
+
+// only after the above line create a model out of the schema
 
 const User = new mongoose.model('User', userSchema)
 
