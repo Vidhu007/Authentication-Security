@@ -1,5 +1,5 @@
-// level 2
-// database encryption
+/jshint esversion:6
+require('dotenv').config()
 const express = require('express')
 const ejs = require('ejs')
 const bodyParser = require('body-parser')
@@ -23,9 +23,10 @@ const userSchema = new mongoose.Schema({
 })
 
 // deciding the key for our encryption
-const secret = "this_is_a_unguessable_string_KUCH BHI DAALDO"
+// const secret = "this_is_a_unguessable_string_KUCH BHI DAALDO"
+// now this secret key is in .env file
 // see the documentation of mongoose-encryprion
-userSchema.plugin(encrypt, {secret: secret , encryptedFields: ["password"]})
+userSchema.plugin(encrypt, {secret: process.env.SECRET , encryptedFields: ["password"]})
 
 // mongoose will encrypt the password when we save()
 // mongoose will decrypt the passowrd when we find()
@@ -87,3 +88,5 @@ app.post('/login', function(req, res){
 app.listen(3000, function(){
     console.log("Server started on port 3000");
   });
+
+
