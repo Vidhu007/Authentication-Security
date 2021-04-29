@@ -5,9 +5,12 @@ const ejs = require('ejs')
 const bodyParser = require('body-parser')
 const app = express();
 const mongoose = require('mongoose');
-const { request } = require('express')
 
-const md5 = require('md5')
+// hashing with salting
+// same passwords also will get diff hashes
+// in each salt round a random character is appended to the typed password and then hash function mein pass
+const bcrypt = require('bcrypt')
+const saltRounds = 10
 // this is used to generate hash function
 // hash can never be decoded 
 app.use(express.static('public'));
@@ -44,25 +47,31 @@ app.get('/register', function(req, res){
 // want to render it when user logiins or signs up
 
 app.post('/register', function(req, res){
-    const newUser = new User({
-        email: req.body.username,
-        password: md5(req.body.password)
 
-        // typed password ko hash function se pass karvake save karo
+    bcrypt.hash(req.body.password , saltRounds , function(err, hash){
+              
+        const newUser = new User({
+            email: req.body.username,
+            password: hash
+    
+            // typed password ko hash function se pass karvake save karo
+        })
+        newUser.save(function(err){
+            if(err){
+                console.log(err)
+            }
+            else {
+                  res.render('secrets')
+            }
+        })      
+
     })
-    newUser.save(function(err){
-        if(err){
-            console.log(err)
-        }
-        else {
-              res.render('secrets')
-        }
-    })
+  
 })
 
 app.post('/login', function(req, res){
     const username = req.body.username
-    const password = md5(req.body.password)
+    const password = req.body.password
     
     User.findOne({email: username}, function(err, foundUser){
         if(err)
@@ -71,12 +80,14 @@ app.post('/login', function(req, res){
         }
         else {
             if(foundUser){
-                if(foundUser.password===password)
-                // if typed password ko hash functio se pass karvake
-                // === stored password ka hash functio pass karvake then match found
-                {
-                    res.render('secrets')
-                }
+                bcrypt.compare(password, foundUser.password , function(err, result){
+                    if(result===true)
+                
+                    {
+                        res.render('secrets')
+                    }
+                })
+               
             }
         }
     })
